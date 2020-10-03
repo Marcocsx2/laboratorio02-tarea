@@ -1,37 +1,50 @@
 const http = require('http');
 const fs = require('fs');
+const path = require('path');
 
-const index = fs.readFileSync('./public/index.html');
-const about = fs.readFileSync('./public/about.html');
-const service = fs.readFileSync('./public/service.html');
-const clients = fs.readFileSync('./public/clients.html');
-const contact = fs.readFileSync('./public/contact.html');
+const server = http.createServer((req, res) => {
+    let filePath = path.join(
+        __dirname,
+        req.url === "/"
+            ? "/public/index.html"
+            : req.url
+    );
 
-http.createServer((req, res) => {
+    let extName = path.extname(filePath);
+    let contentType = 'text/html';
 
-    res.writeHead(200, { 'Content-type': 'text/html' });
-
-    const url = req.url;
-
-    if (url === '/index') {
-        res.write(index);
-        res.end();
-    } else if (url === '/about') {
-        res.write(about);
-        res.end();
-    } else if (url === '/service') {
-        res.write(service);
-        res.end();
-    } else if (url === '/clients') {
-        res.write(clients);
-        res.end();
-    } else if (url === '/contact') {
-        res.write(contact);
-        res.end();
+    switch (extName) {
+        case '.css':
+            contentType = 'text/css';
+            break;
+        case '.js':
+            contentType = 'text/javascript';
+            break;
+        case '.json':
+            contentType = 'application/json';
+            break;
+        case '.png':
+            contentType = 'image/png';
+            break;
+        case '.jpg':
+            contentType = 'image/jpg';
+            break;
     }
-    res.write(index);
-    res.end();
-}).listen(8080, () => {
-    console.log('escuchando el puerto 8080');
-})
 
+    console.log(`File path: ${filePath}`);
+    console.log(`Content-Type: ${contentType}`)
+
+    res.writeHead(200, { 'Content-Type': contentType });
+
+    const readStream = fs.createReadStream(filePath);
+    readStream.pipe(res);
+
+});
+
+server.listen(8080, (err) => {
+    if (err) {
+        console.log(`Error: ${err}`)
+    } else {
+        console.log(`Servidor escuchando el puerto 8080`);
+    }
+});
